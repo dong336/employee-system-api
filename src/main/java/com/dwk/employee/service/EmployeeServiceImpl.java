@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class EmployeeServiceImpl implements EmployeeService{
@@ -22,4 +25,51 @@ public class EmployeeServiceImpl implements EmployeeService{
 
         return employee;
     }
+
+    @Override
+    public List<Employee> getAllEmployees() {
+        List<EmployeeEntity> employeeEntities = employeeRepository.findAll();
+        List<Employee> employees = employeeEntities
+                .stream()
+                .map(entity -> new Employee(
+                        entity.getId(),
+                        entity.getFirstName(),
+                        entity.getLastName(),
+                        entity.getEmailId()))
+                .collect(Collectors.toList());
+
+        return employees;
+    }
+
+    @Override
+    public boolean deleteEmployee(Long id) {
+        EmployeeEntity employee = employeeRepository.findById(id).get();
+        employeeRepository.delete(employee);
+
+        return true;
+    }
+
+    @Override
+    public Employee getEmployeeById(Long id) {
+        EmployeeEntity employeeEntity = employeeRepository.findById(id).get();
+        Employee employee = new Employee();
+
+        BeanUtils.copyProperties(employeeEntity, employee);
+
+        return employee;
+    }
+
+    @Override
+    public Employee updateEmployee(Long id, Employee employee) {
+        EmployeeEntity employeeEntity = employeeRepository.findById(id).get();
+
+        employeeEntity.setEmailId(employee.getEmailId());
+        employeeEntity.setFirstName(employee.getFirstName());
+        employeeEntity.setLastName(employee.getLastName());
+
+        employeeRepository.save(employeeEntity);
+
+        return employee;
+    }
+
 }
